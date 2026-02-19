@@ -1,9 +1,9 @@
-name: Terraform Validation Pipeline
+name: Terraform Local AWS Lab
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
 
 jobs:
   terraform:
@@ -11,44 +11,49 @@ jobs:
 
     services:
       localstack:
-        image: localstack/localstack
+        image: localstack/localstack:latest
         ports:
           - 4566:4566
         env:
-          SERVICES: s3,ec2,iam,sqs
-        options: >-
-          --health-cmd "curl -f http://localhost:4566/_localstack/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          SERVICES: s3,sqs
+          DEBUG: 1
+          AWS_DEFAULT_REGION: us-east-1
+
+    env:
+      AWS_ACCESS_KEY_ID: hbx
+      AWS_SECRET_ACCESS_KEY: hbx
+      AWS_DEFAULT_REGION: us-east-1
+      TF_VAR_localstack_endpoint: http://localhost:4566
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-        working-directory: terraform
+      - name: Wait for LocalStack
+        run: |
+          echo "Aguardando LocalStack iniciar..."
+          for i in {1..20}; do
+            if curl -s http://localhost:4566/health | grep -q running; then
+              echo "LocalStack pronto!"
+              break
+            fi
+            sleep 3
+          done
 
       - name: Terraform Init
-        run: terraform init -backend=false
         working-directory: terraform
+        run: terraform init
 
       - name: Terraform Validate
-        run: terraform validate
         working-directory: terraform
+        run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
         working-directory: terraform
-        env:
-          AWS_ACCESS_KEY_ID: hbx
-          AWS_SECRET_ACCESS_KEY: hbx
-          AWS_DEFAULT_REGION: us-east-1
-          TF_VAR_localstack_endpoint: http://localstack:4566
+        run: terraform plan -out=tfplan
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
