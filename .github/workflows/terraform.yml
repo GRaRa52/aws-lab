@@ -49,7 +49,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: hbx
           AWS_DEFAULT_REGION: us-east-1
           TF_VAR_localstack_endpoint: http://localstack:4566
-          TF_VAR_localstack_endpoint: http://localstack:4566
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
