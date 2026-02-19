@@ -1,3 +1,9 @@
+variable "localstack_endpoint" {
+  description = "LocalStack endpoint URL"
+  type        = string
+  default     = "http://localhost:4566"
+}
+
 provider "aws" {
   access_key = "hbx"
   secret_key = "hbx"
@@ -9,9 +15,9 @@ provider "aws" {
   skip_requesting_account_id  = true
 
   endpoints {
-    s3  = "http://localhost:4566"
-    sqs = "http://localhost:4566"
-    iam = "http://localhost:4566"
+    s3  = var.localstack_endpoint
+    sqs = var.localstack_endpoint
+    iam = var.localstack_endpoint
   }
 }
 

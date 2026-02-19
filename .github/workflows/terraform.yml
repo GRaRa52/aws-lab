@@ -9,6 +9,19 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
+    services:
+      localstack:
+        image: localstack/localstack
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: s3,ec2,iam,sqs
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_localstack/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -31,6 +44,12 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
         working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID: hbx
+          AWS_SECRET_ACCESS_KEY: hbx
+          AWS_DEFAULT_REGION: us-east-1
+          TF_VAR_localstack_endpoint: http://localstack:4566
+          TF_VAR_localstack_endpoint: http://localstack:4566
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
