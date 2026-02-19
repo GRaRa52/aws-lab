@@ -23,3 +23,6 @@ resource "aws_sqs_queue" "lab_queue" {
   name = "fila-lab"
 }
 
+resource "aws_sqs_queue" "nova_fila" {
+  name = "fila-pedidos"
+}
